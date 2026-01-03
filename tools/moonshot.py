@@ -1,5 +1,6 @@
 import json
 import urllib.request
+import urllib.error
 import socket
 import tomllib
 
@@ -41,9 +42,6 @@ def estimate_token(file_path: str) -> int:
         return 0
     except ConnectionError as e:
         print(f"ConnectionError: {e}")
-        return 0
-    except TimeoutError as e:
-        print(f"TimeoutError: {e}")
         return 0
     except json.JSONDecodeError as e:
         print(f"JSONDecodeError: {e}")
