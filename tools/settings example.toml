@@ -1,0 +1,25 @@
+do_init = true      # 是否删除 cleared/ 和 combined/ 文件夹重新运行派生
+do_clear = true     # 是否批量清除注释
+do_combine = true   # 是否批量合并文件
+do_tokenizer = true # 是否批量运行tokenizer
+
+[combinations] # 要combine的文件列表
+first = { output = "combined/first.xml", inputs = [
+    "example1.md",
+    "example2.md",
+    "context/example.md",
+] }
+second = { output = "combined/second.xml", inputs = [
+    "example1.md",
+    "example2.md",
+] }
+# 后面随意继续补充
+
+[tokenizer]
+files = ["combined/first", "example2.md"] # 要计算tokens的文件
+module = "tools/moonshot.py"              # tokenizer模块（输入一个文件url输出一个int）
+
+[user]
+pyenv = "C:/Users/sha1r/myenv/"        # Python虚拟环境位置。要加/，不需要加Scripts/
+MOONSHOT_API_KEY = "sk-xxxxxxxxxxxxxx"
+moonshot_timeout = 5                   # API超时（秒）
