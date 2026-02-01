@@ -1,0 +1,16 @@
+[combinations]
+first = { output = "first", inputs = [
+    "example1.md",
+    "example2.md",
+    "context/example.md",
+] }
+second = { output = "second", inputs = [
+    "example2.md",
+    "cleared/example2.md",
+    "example3.md",
+
+] }
+# Add any content here
+
+[tokenizer]
+files = ["combined/first.xml", "example2.md"]

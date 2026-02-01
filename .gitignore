@@ -1,6 +1,6 @@
 /cleared/
 /combined/
-/tokens.csv
+/tokens.toml
 /settings.toml
 
 __pycache__/
@@ -11,6 +11,7 @@ __pycache__/
 desktop.ini
 /tools/update.ps1
 
+/draft/
 /temp/
 /todo.txt
 /tools/update.ps1
