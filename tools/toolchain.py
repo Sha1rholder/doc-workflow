@@ -158,16 +158,11 @@ def tokens_update(files_tokenizer: list[str], MOONSHOT_API_KEY: str):
 
 
 if __name__ == "__main__":
-    settings_path = Path("settings.toml")
-    if not settings_path.exists():
-        shutil.copy("tools/settings.example.toml", "settings.toml")
-        print("Created settings.toml from template.")
-
     init() if (sys.argv[1].lower() == "true") else None
 
     clear_all()
 
-    with settings_path.open("rb") as f:
+    with Path("settings.toml").open("rb") as f:
         settings = tomllib.load(f)
 
     combine_all(settings.get("combinations", {}))

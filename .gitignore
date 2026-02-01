@@ -3,6 +3,7 @@
 /tokens.toml
 /settings.toml
 
+/.venv/
 __pycache__/
 
 /.claude/

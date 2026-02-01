@@ -10,7 +10,10 @@ second = { output = "second", inputs = [
     "example3.md",
 
 ] }
-# Add any content here
+# Add anything you want to combine into one file.
 
 [tokenizer]
-files = ["combined/first.xml", "example2.md"]
+files = [
+    "combined/first.xml",
+    "example2.md",
+] # Add anything you want to tokenize.
