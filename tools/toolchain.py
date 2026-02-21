@@ -1,11 +1,42 @@
 import sys
+import argparse
 import re
-import shutil
 from pathlib import Path
 import tomllib
 
 
-def init():
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Project Toolchain")
+    parser.add_argument("--init", action="store_true", help="Run initialization")
+    parser.add_argument("--tokenizer", action="store_true", help="Run tokenizer update")
+    args = parser.parse_args()
+
+    if args.init:
+        init()
+
+    clear_all()
+
+    with Path("settings.toml").open("rb") as f:
+        settings = tomllib.load(f)
+    combine_all(settings.get("combinations", {}))
+
+    if args.tokenizer:
+        import os
+
+        tokenizer_config = settings.get("tokenizer", {})
+        files_tokenizer = tokenizer_config.get("files", [])
+        MOONSHOT_API_KEY = os.getenv("MOONSHOT_API_KEY")
+        if MOONSHOT_API_KEY:
+            tokens_update(files_tokenizer, MOONSHOT_API_KEY)
+        else:
+            print("Missing environment variable MOONSHOT_API_KEY")
+            return 1
+    return 0
+
+
+def init() -> None:
+    import shutil
+
     """删除 cleared/ 和 combined/ 目录"""
     shutil.rmtree("cleared", ignore_errors=True)
     shutil.rmtree("combined", ignore_errors=True)
@@ -23,7 +54,7 @@ def is_same(file_path: Path, new_content: str) -> bool:
         return False
 
 
-def clear_all():
+def clear_all() -> None:
     output_dir = Path("cleared")
     output_dir.mkdir(exist_ok=True)
     # 遍历当前目录下的所有 .md 文件
@@ -36,12 +67,9 @@ def clear_all():
         )
         output_path = output_dir / md_file.name
         # 注意：此处将 Path 对象转换为 str 以匹配你原有的 is_same 签名
-        if is_same(output_path, cleared_content):
-            print(f"Skipped: {output_path} is already up to date.")
-            continue
-        # 写入处理后的内容
-        output_path.write_text(cleared_content, encoding="utf-8")
-        print(f"Updated: {output_path}")
+        if not is_same(output_path, cleared_content):
+            output_path.write_text(cleared_content, encoding="utf-8")
+            print(f"Updated: {output_path}")
 
 
 def combine_all(combinations: dict[str, dict]) -> None:
@@ -57,7 +85,7 @@ def combine_all(combinations: dict[str, dict]) -> None:
         for url in input_urls:
             content = Path(url).read_text(encoding="utf-8")
             safe_content = content.replace("]]>", "]]]]><![CDATA[>")
-            parts.append(f'<content id="{url}"><![CDATA[{safe_content}]]></content>')
+            parts.append(f'<file id="{url}"><![CDATA[{safe_content}]]></file>')
 
         parts.append("</root>")
         final_content = "".join(parts)
@@ -65,14 +93,10 @@ def combine_all(combinations: dict[str, dict]) -> None:
         xml_path = output_dir / f"{base_name}.xml"
         txt_path = xml_path.with_suffix(".txt")
 
-        if is_same(xml_path, final_content):
-            print(f"Skipped: {base_name} is already up to date.")
-            continue
-
-        xml_path.write_text(final_content, encoding="utf-8")
-        txt_path.write_text(final_content, encoding="utf-8")
-
-        print(f"Updated: {base_name}")
+        if not is_same(xml_path, final_content):
+            xml_path.write_text(final_content, encoding="utf-8")
+            txt_path.write_text(final_content, encoding="utf-8")
+            print(f"Updated: {base_name}")
 
 
 def estimate_token(file_path: str, MOONSHOT_API_KEY: str, moonshot_timeout=3) -> int:
@@ -132,16 +156,18 @@ def estimate_token(file_path: str, MOONSHOT_API_KEY: str, moonshot_timeout=3) ->
         return 0
 
 
-def tokens_update(files_tokenizer: list[str], MOONSHOT_API_KEY: str):
+def tokens_update(files_tokenizer: list[str], MOONSHOT_API_KEY: str) -> None:
     from datetime import datetime
-    import tomli_w
+    import csv
 
-    tokens_path = Path("tokens.toml")
+    tokens_path = Path("tokens.csv")
 
     data = {}
     if tokens_path.exists():
-        with tokens_path.open("rb") as f:
-            data = tomllib.load(f)
+        with tokens_path.open("r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                data[row["file"]] = {"tokens": row["tokens"], "time": row["time"]}
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     for url in files_tokenizer:
@@ -153,22 +179,12 @@ def tokens_update(files_tokenizer: list[str], MOONSHOT_API_KEY: str):
     )
     sorted_data = dict(sorted_items)
 
-    with tokens_path.open("wb") as f:
-        tomli_w.dump(sorted_data, f)
+    with tokens_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["file", "tokens", "time"])
+        for url, info in sorted_data.items():
+            writer.writerow([url, info["tokens"], info["time"]])
 
 
 if __name__ == "__main__":
-    init() if (sys.argv[1].lower() == "true") else None
-
-    clear_all()
-
-    with Path("settings.toml").open("rb") as f:
-        settings = tomllib.load(f)
-
-    combine_all(settings.get("combinations", {}))
-
-    MOONSHOT_API_KEY = sys.argv[2]
-    if MOONSHOT_API_KEY and MOONSHOT_API_KEY.lower() != "false":
-        tokenizer_config = settings.get("tokenizer", {})
-        files_tokenizer = tokenizer_config.get("files", [])
-        tokens_update(files_tokenizer, MOONSHOT_API_KEY)
+    sys.exit(main())

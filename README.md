@@ -26,7 +26,7 @@ To use the Moonshot Tokenizer, please apply for an API Key on the Moonshot AI of
 
 ## Directory Structure
 
-```
+```txt
 doc-workflow/
 └── tools/                # Tools directory
     ├── run.ps1           # PowerShell startup script

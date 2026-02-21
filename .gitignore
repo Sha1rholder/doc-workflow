@@ -1,18 +1,16 @@
 /cleared/
 /combined/
-/tokens.toml
+/tokens.csv
 /settings.toml
 
-/.venv/
+inspire/
+.venv/
 __pycache__/
-
-/.claude/
-/CLAUDE.md
-
 desktop.ini
-/tools/update.ps1
 
-/draft/
-/temp/
+.claude/
+
+draft.*
+draft/
+temp/
 /todo.txt
-/tools/update.ps1

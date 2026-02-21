@@ -1,75 +1,77 @@
 $pythonexe = ""
-# Leave empty to use the project's default virtual environment or create one.
-# Or input the absolute path of your Python executable, i.e., "C:\Users\username\myenv\Scripts\python.exe". 
+# Input the absolute path of your Python executable, i.e., "C:\Users\username\.myenv\Scripts\python.exe",
+# or leave it empty to use the project's default virtual environment,
+# or let the script automatically create a .venv by uv.
 # Python >=3.11 required.
 
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectRoot = Split-Path -Parent $scriptDir
-$toolchainPath = Join-Path $scriptDir "toolchain.py"
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+# This section is not interchangeable with below ones.
+$projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
+$toolchainPath = Join-Path $PSScriptRoot "toolchain.py"
 Push-Location $projectRoot
 
-# Check for winget
-if (-not (Get-Command "winget" -ErrorAction SilentlyContinue)) {
-    Write-Host "winget not detected. Please install App Installer (Search in Microsoft Store)." -ForegroundColor Red
+# Ensure settings.toml exists.
+if (-not (Test-Path -Path ".\settings.toml" -PathType Leaf)) {
+    Copy-Item -Path ".\tools\settings.example.toml" -Destination ".\settings.toml" -Force
+    Write-Host "Created settings.toml from template. Please manually configure settings.toml and run this script again. Press any key to exit."
+    [System.Console]::ReadKey($true).Key
     exit 1
 }
 
-# Check for uv, install if missing
-if (-not (Get-Command "uv" -ErrorAction SilentlyContinue)) {
-    Write-Host "uv not detected. Installing via winget..."
-    winget install astral-sh.uv --source winget --accept-package-agreements --accept-source-agreements
-    Write-Host "uv installed. Please restart this script in a new terminal."
-    Read-Host "Press any key to exit"
-    exit
-}
-
-# Handle Python executable
-# If $pythonexe is empty, check for .venv. If not found, create it using uv, then set path.
+# If $pythonexe is empty, check for pyvenv.
 if ([string]::IsNullOrWhiteSpace($pythonexe)) {
-    $venvPath = Join-Path $projectRoot ".venv"
-    if (-not (Test-Path $venvPath)) {
-        Write-Host "No virtual environment found. Creating one..."
-        uv venv
-    }
-    # Set the path to the python executable inside the .venv
-    $pythonexe = Join-Path $venvPath "Scripts\python.exe"
-}
-Write-Host "Using Python executable at: $pythonexe"
-
-# Ensure settings.toml exists
-if (-not (Test-Path -Path ".\settings.toml" -PathType Leaf)) {
-    Copy-Item -Path ".\tools\settings.example.toml" -Destination ".\settings.toml" -Force
-    Write-Host "Created settings.toml from template. Please config settings.toml manually and run this script again."
-    Read-Host "Press any key to exit"
-    exit
-}
-
-# Handle Moonshot API Key
-$MOONSHOT_API_KEY = [Environment]::GetEnvironmentVariable("MOONSHOT_API_KEY", "User")
-if (-not $MOONSHOT_API_KEY) {
-    $MOONSHOT_API_KEY = $false
-    Write-Host "User environment variable `MOONSHOT_API_KEY` wasn't detected. Tokenizer skipped. If you need to use this feature, please configure user environment variable `MOONSHOT_API_KEY`." -ForegroundColor Yellow
-}
-
-# Interactive prompts
-$response = Read-Host "Do you want to init? [N/y]"
-$doInit = $response -eq "Y" -or $response -eq "y"
-
-if ($MOONSHOT_API_KEY) {
-    $response = Read-Host "Do you want to do tokenizer? [N/y]"
-    if ( -not ($response -eq "Y" -or $response -eq "y")) {
-        $MOONSHOT_API_KEY = $false
-    }
+    # Checking frequent pyvenv location.
+    $venvPath = @('.venv', 'venv', '.env', 'env', '.pyenv', 'pyenv') | ForEach-Object { Join-Path $projectRoot "$_\Scripts\python.exe" }
+    $firstPath = $venvPath | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if ($firstPath) { $pythonexe = $firstPath }
     else {
-        uv pip install tomli-w --python $pythonexe
+        # Checking every possible pyvenv location.
+        $venvPath = Get-ChildItem -Directory | ForEach-Object { Join-Path $_.FullName "Scripts\python.exe" }
+        $firstPath = $venvPath | Where-Object { Test-Path $_ } | Select-Object -First 1
+        if ($firstPath) { 
+            Write-Host "You can manually configure the absolute path of your Python executable at the beginning of this script to avoid automatic searching for Python virtual environment." -ForegroundColor Yellow
+            $pythonexe = $firstPath 
+        }
+        else {
+            Write-Host "No Python executable found."
+            if (-not (Get-Command "uv" -ErrorAction SilentlyContinue)) {
+                Write-Host "No uv found. Press Y to install uv (a modern light-weight Python package manager, install via winget) and automatically create a Python virtual environment to continue. Press other key to exit so you can manually configure the absolute path of your Python executable at the beginning of this script, or create a Python virtual environment at root directory to skip uv."
+                if ([System.Console]::ReadKey($true).Key -eq 'Y') {
+                    winget install --id=astral-sh.uv -e
+                    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "User") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+                }
+                else { exit 1 }
+            }
+            # uv found.
+            $venvPath = Read-Host "Creating a Python virtual environment by uv. Name your environment or leave blank to skip"
+            if ($venvPath) {
+                & uv venv $venvPath
+                $pythonexe = Join-Path $venvPath "Scripts\python.exe"
+            }
+            else { exit 1 }
+        }
     }
 }
 
-# Run toolchain
-uv run --python $pythonexe python $toolchainPath $doInit.ToString() $MOONSHOT_API_KEY.ToString()
+Write-Host "Using Python executable at: $pythonexe"
+if ((& $pythonexe --version 2>&1) -notmatch "3\.1[1-9]") { throw "Python 3.11+ required" } 
 
-# Exit script
-if ($MOONSHOT_API_KEY) {
-    Read-Host "Press any key to exit"
+# To do, or not to do, that is the question.
+Write-Host "Press Y to keep window open after execution. Press other key to immediately close the window once complete."
+$keepWindowOpen = [System.Console]::ReadKey($true).Key -eq 'Y'
+$pythonArgs = @($toolchainPath)
+Write-Host "Press Y to delete automatically generated folders. Press other key to skip."
+if ([System.Console]::ReadKey($true).Key -eq 'Y') { $pythonArgs += "--init" }
+if ($env:MOONSHOT_API_KEY) {
+    Write-Host "Press Y to run tokenizer. Press other key to skip."
+    if ([System.Console]::ReadKey($true).Key -eq 'Y') { $pythonArgs += "--tokenizer" }
 }
-exit
+else { Write-Host "No environment variable MOONSHOT_API_KEY found. Tokenizer skipped." -ForegroundColor Yellow }
+& $pythonexe @pythonArgs
+if ($keepWindowOpen) {
+    Write-Host "Press any key to exit."
+    [System.Console]::ReadKey($true).Key
+}
+exit 0

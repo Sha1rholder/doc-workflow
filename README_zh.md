@@ -22,7 +22,7 @@
 
 ## 目录结构
 
-```
+```txt
 doc-workflow/
 └── tools/             # 工具目录
     ├── run.ps1        # PowerShell启动脚本
