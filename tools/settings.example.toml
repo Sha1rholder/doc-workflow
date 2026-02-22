@@ -1,19 +1,17 @@
-[combinations]
-first = { output = "first", inputs = [
-    "example1.md",
-    "example2.md",
-    "context/example.md",
-] }
-second = { output = "second", inputs = [
-    "example2.md",
-    "cleared/example2.md",
-    "example3.md",
+derived_folder = "derived" # This folder will be overwritten by the program. Ensure that no critical files are stored here.
 
-] }
-# Add anything you want to combine into one file.
+remove_comments = ["example2.md", "example0/example3.md"] # Remove HTML comments.
+
+[combinations]
+first = ["example1.md", "derived/example0__example3.comments_removed.md"]
+second = ["derived/first.xml.txt", "example3.md"]
+# third = []
+# Combine into one file.
 
 [tokenizer]
+# endpoint = "https://api.moonshot.ai/v1/tokenizers/estimate-token-count" # international endpoint
+endpoint = "https://api.moonshot.cn/v1/tokenizers/estimate-token-count" # China endpoint
 files = [
-    "combined/first.xml",
+    "derived/second.xml.txt",
     "example2.md",
 ] # Add anything you want to tokenize.

@@ -11,95 +11,100 @@ def main() -> int:
     parser.add_argument("--tokenizer", action="store_true", help="Run tokenizer update")
     args = parser.parse_args()
 
-    if args.init:
-        init()
-
-    clear_all()
-
     with Path("settings.toml").open("rb") as f:
         settings = tomllib.load(f)
-    combine_all(settings.get("combinations", {}))
+    derived_folder, remove_comments, combinations, tokenizer = (
+        settings["derived_folder"],
+        settings["remove_comments"],
+        settings["combinations"],
+        settings["tokenizer"],
+    )
+
+    if args.init:
+        import shutil
+
+        shutil.rmtree(derived_folder, ignore_errors=True)
+
+    remove_all(derived_folder, remove_comments)
+    combine_all(derived_folder, combinations)
 
     if args.tokenizer:
         import os
 
-        tokenizer_config = settings.get("tokenizer", {})
-        files_tokenizer = tokenizer_config.get("files", [])
         MOONSHOT_API_KEY = os.getenv("MOONSHOT_API_KEY")
         if MOONSHOT_API_KEY:
-            tokens_update(files_tokenizer, MOONSHOT_API_KEY)
+            tokens_update(
+                derived_folder,
+                tokenizer["endpoint"],
+                tokenizer["files"],
+                MOONSHOT_API_KEY,
+            )
         else:
             print("Missing environment variable MOONSHOT_API_KEY")
             return 1
     return 0
 
 
-def init() -> None:
-    import shutil
-
-    """删除 cleared/ 和 combined/ 目录"""
-    shutil.rmtree("cleared", ignore_errors=True)
-    shutil.rmtree("combined", ignore_errors=True)
-    print("Initialized: cleared/ and combined/ directories removed.")
-
-
 def is_same(file_path: Path, new_content: str) -> bool:
-    """
-    比较磁盘上的文件内容与新生成的内容是否完全一致。
-    如果文件不存在，返回 False
-    """
     try:
         return file_path.read_text(encoding="utf-8") == new_content
     except FileNotFoundError:
         return False
 
 
-def clear_all() -> None:
-    output_dir = Path("cleared")
+def remove_all(derived_folder: str, remove_comments: list[str]) -> None:
+    output_dir = Path(derived_folder)
     output_dir.mkdir(exist_ok=True)
-    # 遍历当前目录下的所有 .md 文件
-    for md_file in Path(".").glob("*.md"):
-        # 读取原始文件内容
-        content = md_file.read_text(encoding="utf-8")
-        # 移除 HTML 注释并添加头部声明
-        cleared_content = "<!-- Automatically deleted HTML comments. -->\n\n" + re.sub(
+
+    for url in remove_comments:
+        content = Path(url).read_text(encoding="utf-8")
+        path_obj = Path(url)
+        filename_without_ext = path_obj.with_suffix("")
+        output_filename = str(filename_without_ext).replace("/", "__").replace("\\", "__") + ".comments_removed.md"
+        output_path = output_dir / output_filename
+        cleared_content = "<!-- HTML comments removed. -->\n" + re.sub(
             r"<!--.*?-->", "", content, flags=re.DOTALL
         )
-        output_path = output_dir / md_file.name
-        # 注意：此处将 Path 对象转换为 str 以匹配你原有的 is_same 签名
+
         if not is_same(output_path, cleared_content):
             output_path.write_text(cleared_content, encoding="utf-8")
             print(f"Updated: {output_path}")
 
 
-def combine_all(combinations: dict[str, dict]) -> None:
-    output_dir = Path("combined")
+def combine_all(derived_folder: str, combinations: dict[str, list[str]]) -> None:
+    output_dir = Path(derived_folder)
     output_dir.mkdir(exist_ok=True)
 
-    for cfg in combinations.values():
-        base_name: str = cfg["output"]
-        input_urls: list[str] = cfg["inputs"]
-
-        parts = [f'<?xml version="1.0" encoding="UTF-8"?><root id="{base_name}">']
-
-        for url in input_urls:
+    for base_name, urls in combinations.items():
+        parts = []
+        for url in urls:
             content = Path(url).read_text(encoding="utf-8")
-            safe_content = content.replace("]]>", "]]]]><![CDATA[>")
-            parts.append(f'<file id="{url}"><![CDATA[{safe_content}]]></file>')
-
-        parts.append("</root>")
+            if url.endswith(".xml.txt"):
+                content = f'<group path="{url}">{content}</group>'
+            else:
+                display_path = url
+                if url.endswith(".comments_removed.md") and url.startswith(
+                    derived_folder + "/"
+                ):
+                    display_path = (
+                        url[len(derived_folder) + 1 :]
+                        .replace("__", "/")
+                        .removesuffix(".comments_removed.md")
+                    )
+                content = f'<file path="{display_path}"><![CDATA[{content.replace("]]>", "]]]]><![CDATA[>")}]]></file>'
+            parts.append(content)
         final_content = "".join(parts)
 
-        xml_path = output_dir / f"{base_name}.xml"
-        txt_path = xml_path.with_suffix(".txt")
+        xml_path = output_dir / f"{base_name}.xml.txt"
 
         if not is_same(xml_path, final_content):
             xml_path.write_text(final_content, encoding="utf-8")
-            txt_path.write_text(final_content, encoding="utf-8")
-            print(f"Updated: {base_name}")
+            print(f"Updated: {base_name}.xml.txt")
 
 
-def estimate_token(file_path: str, MOONSHOT_API_KEY: str, moonshot_timeout=3) -> int:
+def estimate_token_add1(
+    tokenizer_endpoint: str, file_path: str, MOONSHOT_API_KEY: str, moonshot_timeout=3
+) -> int:
     import json
     import urllib.request
     import urllib.error
@@ -115,7 +120,7 @@ def estimate_token(file_path: str, MOONSHOT_API_KEY: str, moonshot_timeout=3) ->
 
     try:
         req = urllib.request.Request(
-            "https://api.moonshot.cn/v1/tokenizers/estimate-token-count",
+            tokenizer_endpoint,
             data=json.dumps(data).encode("utf-8"),
             headers={
                 "Content-Type": "application/json",
@@ -129,7 +134,7 @@ def estimate_token(file_path: str, MOONSHOT_API_KEY: str, moonshot_timeout=3) ->
                 .get("total_tokens", 0)
             )
             print(file_path, "tokens:", result)
-            return result
+            return result + 1
     except urllib.error.HTTPError as e:
         print(f"HTTPError: {e}")
         return 0
@@ -156,7 +161,12 @@ def estimate_token(file_path: str, MOONSHOT_API_KEY: str, moonshot_timeout=3) ->
         return 0
 
 
-def tokens_update(files_tokenizer: list[str], MOONSHOT_API_KEY: str) -> None:
+def tokens_update(
+    derived_folder: str,
+    tokenizer_endpoint: str,
+    tokenizer_files: list[str],
+    MOONSHOT_API_KEY: str,
+) -> int:
     from datetime import datetime
     import csv
 
@@ -170,12 +180,15 @@ def tokens_update(files_tokenizer: list[str], MOONSHOT_API_KEY: str) -> None:
                 data[row["file"]] = {"tokens": row["tokens"], "time": row["time"]}
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    for url in files_tokenizer:
-        count = estimate_token(url, MOONSHOT_API_KEY)
-        data[url] = {"tokens": str(count), "time": now_str}
+    for url in tokenizer_files:
+        count_add1 = estimate_token_add1(tokenizer_endpoint, url, MOONSHOT_API_KEY)
+        if count_add1:
+            data[url] = {"tokens": str(count_add1 - 1), "time": now_str}
+        else:
+            return 1
 
     sorted_items = sorted(
-        data.items(), key=lambda x: (x[0].startswith("combined/"), x[0])
+        data.items(), key=lambda x: (x[0].startswith(derived_folder + "/"), x[0])
     )
     sorted_data = dict(sorted_items)
 
@@ -184,6 +197,7 @@ def tokens_update(files_tokenizer: list[str], MOONSHOT_API_KEY: str) -> None:
         writer.writerow(["file", "tokens", "time"])
         for url, info in sorted_data.items():
             writer.writerow([url, info["tokens"], info["time"]])
+    return 0
 
 
 if __name__ == "__main__":

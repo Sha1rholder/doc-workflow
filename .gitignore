@@ -1,16 +1,7 @@
-/cleared/
-/combined/
+/derived/
 /tokens.csv
 /settings.toml
 
-inspire/
-.venv/
 __pycache__/
-desktop.ini
 
-.claude/
-
-draft.*
-draft/
-temp/
 /todo.txt

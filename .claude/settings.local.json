@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\":*)",
+      "Bash(\"C:\\\\Users\\\\sha1r\\\\.myenv\\\\Scripts\\\\python.exe\" tools/toolchain.py --init)"
+    ]
+  }
+}
