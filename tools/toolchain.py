@@ -81,12 +81,16 @@ def remove_all(derived_folder: str, remove_comments: list[str]) -> None:
             print(f"Updated: {output_path}")
 
 
-def combine_all(derived_folder: str, combinations: dict[str, list[str]]) -> None:
+def combine_all(derived_folder: str, combinations: list[dict]) -> None:
     output_dir = Path(derived_folder)
     output_dir.mkdir(exist_ok=True)
     derived_path = Path(derived_folder)
 
-    for base_name, urls in combinations.items():
+    for combo in combinations:
+        base_name = combo["name"]
+        urls = combo["filelist"]
+        comment = combo.get("comment")
+
         parts = []
         for url in urls:
             content = Path(url).read_text(encoding="utf-8")
@@ -104,7 +108,10 @@ def combine_all(derived_folder: str, combinations: dict[str, list[str]]) -> None
 
                 content = f'<file path="{display_path}"><![CDATA[{content.replace("]]>", "]]]]><![CDATA[>")}]]></file>'
             parts.append(content)
+
         final_content = "".join(parts)
+        if comment:
+            final_content = f"<!--{comment}-->" + final_content
 
         xml_path = output_dir / f"{base_name}.xml.txt"
 

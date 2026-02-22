@@ -1,4 +1,4 @@
-$pythonexe = "C:\Users\sha1r\.myenv\Scripts\python.exe"
+$pythonexe = ""
 # Input the absolute path of your Python executable, i.e., "C:\Users\username\.myenv\Scripts\python.exe",
 # or leave it empty to use the project's default virtual environment,
 # or let the script automatically create a .venv by uv.
@@ -15,7 +15,7 @@ Push-Location $projectRoot
 # Ensure settings.toml exists.
 if (-not (Test-Path -Path ".\settings.toml" -PathType Leaf)) {
     Copy-Item -Path ".\tools\settings.example.toml" -Destination ".\settings.toml" -Force
-    Read-Host "Created settings.toml from template. Please manually configure settings.toml and run this script again. Press Enter to exit."
+    Read-Host "Created settings.toml from template. Please manually configure settings.toml and run this script again. Press Enter to exit"
     exit 1
 }
 
@@ -56,7 +56,7 @@ if ([string]::IsNullOrWhiteSpace($pythonexe)) {
 
 Write-Host "Using Python executable at: $pythonexe"
 if ((& $pythonexe --version 2>&1) -notmatch "3\.1[1-9]") {
-    Read-Host "Python 3.11+ required. Press Enter to exit." -ForegroundColor Red
+    Read-Host "Python 3.11+ required. Press Enter to exit" -ForegroundColor Red
     exit 1 
 }
 
@@ -72,5 +72,5 @@ if ($env:MOONSHOT_API_KEY) {
 }
 else { Write-Host "No environment variable MOONSHOT_API_KEY found. Tokenizer skipped." -ForegroundColor Yellow }
 & $pythonexe @pythonArgs
-if ($keepWindowOpen) { Read-Host "Press Enter to exit." }
+if ($keepWindowOpen) { Read-Host "Press Enter to exit" }
 exit 0

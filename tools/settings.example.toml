@@ -3,11 +3,21 @@ tokens_csv = "tokens.csv" # This file will be overwritten by the program. It sto
 
 remove_comments = ["example2.md", "example0/example3.md"] # Select the files from which you want to remove HTML comments.
 
-[combinations]
-first = ["example1.md", "derived/example0__example3.comments_removed.md"]
-second = ["derived/first.xml.txt", "example3.md"]
-# third = []
-# Append the file groups that you want to combine into one file.
+[[combinations]]
+name = "first"
+comment="You can add comment here. It will be shown in the combination result."
+filelist = ["example1.md", "derived/example0__example3.comments_removed.md"]
+
+[[combinations]]
+name="second"
+comment="'comment' is optional, while 'name' and 'filelist' are mandatory."
+filelist = ["derived/first.xml.txt", "example3.md"]
+
+[[combinations]]
+name="third"
+filelist=[]
+
+# Append more [[combinations]] as you like.
 
 [tokenizer]
 endpoint = "https://api.moonshot.cn/v1/tokenizers/estimate-token-count" # For users outside of China: "https://api.moonshot.ai/v1/tokenizers/estimate-token-count"

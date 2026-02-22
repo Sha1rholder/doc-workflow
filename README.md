@@ -17,7 +17,7 @@ Detailed implementation explained: [![Ask DeepWiki](https://deepwiki.com/badge.s
 3. Edit `settings.toml`.
 4. Run `tools/run.ps1` again.
 
-The behavior of `run.ps1` depends on its absolute path and is irrelevant to where it is launched.
+The behavior of `run.ps1` depends on its absolute path and is irrelevant to where it is launched and current working directory.
 
 To enable tokenizer, please create an environment variable `MOONSHOT_API_KEY` (both user and system level are good). Then apply for an API Key on Moonshot AI platform <https://platform.moonshot.ai> (for those in China: <https://platform.moonshot.cn>). Then add your API Key to `MOONSHOT_API_KEY`.
 
@@ -42,6 +42,6 @@ doc-workflow/
 | derived_folder | Output folder for storing processed files |
 | tokens_csv | Token statistics record file |
 | remove_comments | List of files that need HTML comments removed |
-| [combinations] | Document merging configuration; allows defining multiple combinations and supports chained merging |
-| [tokenizer].endpoint | MoonshotAI API endpoint |
+| [[combinations]] | Document merging configuration; allows defining multiple combinations and supports chained merging |
+| [tokenizer].endpoint | Tokenizer API endpoint |
 | [tokenizer].files | List of files to calculate tokens for |
