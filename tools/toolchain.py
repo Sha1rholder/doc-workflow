@@ -1,3 +1,4 @@
+import os
 import sys
 import argparse
 import re
@@ -13,8 +14,9 @@ def main() -> int:
 
     with Path("settings.toml").open("rb") as f:
         settings = tomllib.load(f)
-    derived_folder, remove_comments, combinations, tokenizer = (
+    derived_folder, tokens_csv, remove_comments, combinations, tokenizer = (
         settings["derived_folder"],
+        settings["tokens_csv"],
         settings["remove_comments"],
         settings["combinations"],
         settings["tokenizer"],
@@ -24,17 +26,22 @@ def main() -> int:
         import shutil
 
         shutil.rmtree(derived_folder, ignore_errors=True)
+        if os.path.exists(tokens_csv):
+            os.remove(tokens_csv)
 
     remove_all(derived_folder, remove_comments)
     combine_all(derived_folder, combinations)
 
     if args.tokenizer:
-        import os
-
-        MOONSHOT_API_KEY = os.getenv("MOONSHOT_API_KEY")
+        try:
+            MOONSHOT_API_KEY = os.getenv("MOONSHOT_API_KEY")
+        except:
+            print("Fail to read environment variable MOONSHOT_API_KEY.")
+            return 1
         if MOONSHOT_API_KEY:
             tokens_update(
                 derived_folder,
+                tokens_csv,
                 tokenizer["endpoint"],
                 tokenizer["files"],
                 MOONSHOT_API_KEY,
@@ -60,7 +67,10 @@ def remove_all(derived_folder: str, remove_comments: list[str]) -> None:
         content = Path(url).read_text(encoding="utf-8")
         path_obj = Path(url)
         filename_without_ext = path_obj.with_suffix("")
-        output_filename = str(filename_without_ext).replace("/", "__").replace("\\", "__") + ".comments_removed.md"
+        output_filename = (
+            str(filename_without_ext).replace("/", "__").replace("\\", "__")
+            + ".comments_removed.md"
+        )
         output_path = output_dir / output_filename
         cleared_content = "<!-- HTML comments removed. -->\n" + re.sub(
             r"<!--.*?-->", "", content, flags=re.DOTALL
@@ -74,6 +84,7 @@ def remove_all(derived_folder: str, remove_comments: list[str]) -> None:
 def combine_all(derived_folder: str, combinations: dict[str, list[str]]) -> None:
     output_dir = Path(derived_folder)
     output_dir.mkdir(exist_ok=True)
+    derived_path = Path(derived_folder)
 
     for base_name, urls in combinations.items():
         parts = []
@@ -83,14 +94,14 @@ def combine_all(derived_folder: str, combinations: dict[str, list[str]]) -> None
                 content = f'<group path="{url}">{content}</group>'
             else:
                 display_path = url
-                if url.endswith(".comments_removed.md") and url.startswith(
-                    derived_folder + "/"
-                ):
+                url_path = Path(url)
+                if url.endswith(".comments_removed.md"):
+                    relative_path = url_path.relative_to(derived_path)
+                    # Convert to string and process
                     display_path = (
-                        url[len(derived_folder) + 1 :]
-                        .replace("__", "/")
-                        .removesuffix(".comments_removed.md")
+                        str(relative_path).replace("__", "/").replace("\\", "/")
                     )
+
                 content = f'<file path="{display_path}"><![CDATA[{content.replace("]]>", "]]]]><![CDATA[>")}]]></file>'
             parts.append(content)
         final_content = "".join(parts)
@@ -163,6 +174,7 @@ def estimate_token_add1(
 
 def tokens_update(
     derived_folder: str,
+    tokens_csv: str,
     tokenizer_endpoint: str,
     tokenizer_files: list[str],
     MOONSHOT_API_KEY: str,
@@ -170,7 +182,7 @@ def tokens_update(
     from datetime import datetime
     import csv
 
-    tokens_path = Path("tokens.csv")
+    tokens_path = Path(tokens_csv)
 
     data = {}
     if tokens_path.exists():
@@ -188,7 +200,7 @@ def tokens_update(
             return 1
 
     sorted_items = sorted(
-        data.items(), key=lambda x: (x[0].startswith(derived_folder + "/"), x[0])
+        data.items(), key=lambda x: (Path(x[0]).is_relative_to(derived_folder), x[0])
     )
     sorted_data = dict(sorted_items)
 

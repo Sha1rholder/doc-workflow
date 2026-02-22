@@ -1,16 +1,16 @@
-derived_folder = "derived" # This folder will be overwritten by the program. Ensure that no critical files are stored here.
+derived_folder = "derived" # This folder will be overwritten by the program. All derived files will be stored here. Ensure that no critical files are stored here.
+tokens_csv = "tokens.csv" # This file will be overwritten by the program. It stores the tokenizer's results and timestamp. Ensure that no critical data is stored here.
 
-remove_comments = ["example2.md", "example0/example3.md"] # Remove HTML comments.
+remove_comments = ["example2.md", "example0/example3.md"] # Select the files from which you want to remove HTML comments.
 
 [combinations]
 first = ["example1.md", "derived/example0__example3.comments_removed.md"]
 second = ["derived/first.xml.txt", "example3.md"]
 # third = []
-# Combine into one file.
+# Append the file groups that you want to combine into one file.
 
 [tokenizer]
-# endpoint = "https://api.moonshot.ai/v1/tokenizers/estimate-token-count" # international endpoint
-endpoint = "https://api.moonshot.cn/v1/tokenizers/estimate-token-count" # China endpoint
+endpoint = "https://api.moonshot.cn/v1/tokenizers/estimate-token-count" # For users outside of China: "https://api.moonshot.ai/v1/tokenizers/estimate-token-count"
 files = [
     "derived/second.xml.txt",
     "example2.md",

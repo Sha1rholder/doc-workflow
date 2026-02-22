@@ -64,7 +64,7 @@ if ((& $pythonexe --version 2>&1) -notmatch "3\.1[1-9]") {
 Write-Host "Press Y to keep window open after execution. Press other key to immediately close the window once complete."
 $keepWindowOpen = [System.Console]::ReadKey($true).Key -eq 'Y'
 $pythonArgs = @($toolchainPath)
-Write-Host "Press Y to delete automatically generated folders. Press other key to skip."
+Write-Host "Press Y to delete automatically generated folder and file. Press other key to skip."
 if ([System.Console]::ReadKey($true).Key -eq 'Y') { $pythonArgs += "--init" }
 if ($env:MOONSHOT_API_KEY) {
     Write-Host "Press Y to run tokenizer. Press other key to skip."
