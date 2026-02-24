@@ -1,8 +1,8 @@
-cleared_folder = ".cleared/" # Directory for files with HTML comments removed, trailing slash required. ⚠️ This folder will be overwritten
+cleared_folder = ".cleared/" # Directory for files with HTML comments removed. Trailing slash required. ⚠️ This folder will be overwritten
 delete_cleared = false # Choose if to delete cleared_folder after execution, set to false to keep the cleared files
 
-combined_folder = "combined/" # Directory for combined XML files, trailing slash required. ⚠️ This folder will be overwritten
-combined_extension = ".xml.txt" # File extension for combined output files
+combined_folder = "combined/" # Directory for combined XML files. Trailing slash required. ⚠️ This folder will be overwritten
+combined_extension = ".xml" # File extension for combined output files
 
 tokens_csv = "tokens.csv" # Path to CSV file for token count results. ⚠️ This file will be overwritten
 
@@ -20,19 +20,19 @@ comment = "Comment will be shown in the combination result." # Comments are opti
 filelist = [ "example1.md", ".cleared/example0/example3.md" ] # List of files to merge, in order
 
 [[combinations]]
-name = "second" # Can reference previous merge result
-filelist = [ # Overwrites previously generated files
-  "combined/first.xml.txt",
+name = "second" # References previous merge result
+filelist = [
+  "combined/first.xml",
   ".cleared/example2.md",
   "example3.md"
 ]
 
 [[combinations]]
-name = "first"
+name = "first" # Overwrites previously generated files
 filelist = [ "example1.md", "example0/example3.md" ]
 
 
 # Tokenizer configuration (requires MOONSHOT_API_KEY)
 [tokenizer]
 endpoint = "https://api.moonshot.cn/v1/tokenizers/estimate-token-count" # or https://api.moonshot.ai/v1/tokenizers/estimate-token-count
-files = [ "combined/second.xml.txt", "example2.md" ] # List of files to calculate token counts for
+files = [ "combined/second.xml", "example2.md" ] # List of files to calculate token counts for

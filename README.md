@@ -1,4 +1,4 @@
-[中文版README](./README.zh-Hans.md)
+[中文](./README.zh-Hans.md)
 
 # doc-workflow
 

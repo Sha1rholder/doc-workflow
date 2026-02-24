@@ -7,4 +7,5 @@
 __pycache__/
 
 /todo.txt
+/.claude/
 CLAUDE.md
