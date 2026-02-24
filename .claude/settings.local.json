@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"C:\\\\Users\\\\sha1r\\\\.myenv\\\\Scripts\\\\python.exe\" -m py_compile tools/toolchain.py)",
+      "Bash(\"C:\\\\Users\\\\sha1r\\\\.myenv\\\\Scripts\\\\python.exe\" toolchain.py --help)"
+    ]
+  }
+}

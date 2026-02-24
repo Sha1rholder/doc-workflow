@@ -41,7 +41,9 @@ doc-workflow/
 | Configuration Item | Description |
 | --- | --- |
 | cleared_folder | Output folder for storing HTML-comments-removed files |
-| combined_folder | Output folder for storing combined .xml.txt files |
+| delete_cleared | Whether to delete cleared_folder after execution |
+| combined_folder | Output folder for storing combined XML files |
+| combined_extension | File extension for the output files |
 | tokens_csv | Token statistics record file |
 | remove_comments | List of files that need HTML comments removed |
 | [[combinations]] | Document merging configuration; allows defining multiple combinations and supports chained merging |

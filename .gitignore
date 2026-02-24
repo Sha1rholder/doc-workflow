@@ -1,6 +1,7 @@
-/cleared/
+/.cleared/
 /combined/
 /tokens.csv
+
 /settings.toml
 
 __pycache__/

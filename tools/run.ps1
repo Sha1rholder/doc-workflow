@@ -36,7 +36,7 @@ if ([string]::IsNullOrWhiteSpace($pythonexe)) {
         else {
             Write-Host "No Python executable found."
             if (-not (Get-Command "uv" -ErrorAction SilentlyContinue)) {
-                Write-Host "No uv found. Press Y to install uv (a modern lightweight Python package manager, install via winget) and automatically create a Python virtual environment to continue. Press other key to exit so you can manually configure the absolute path of your Python executable at the beginning of this script, or create a Python virtual environment at root directory to skip uv."
+                Write-Host "No uv found. Press Y to install uv. Press other key to exit"
                 if ([System.Console]::ReadKey($true).Key -eq 'Y') {
                     winget install --id=astral-sh.uv -e
                     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "User") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "Machine")
@@ -64,10 +64,10 @@ if ((& $pythonexe --version 2>&1) -notmatch "3\.1[1-9]") {
 Write-Host "Press Y to keep window open after execution. Press other key to immediately close the window once complete."
 $keepWindowOpen = [System.Console]::ReadKey($true).Key -eq 'Y'
 $pythonArgs = @($toolchainPath)
-Write-Host "Press Y to delete automatically generated folder and file. Press other key to skip."
+Write-Host "Press Y to delete automatically generated folder and file. Press other key to skip"
 if ([System.Console]::ReadKey($true).Key -eq 'Y') { $pythonArgs += "--init" }
 if ($env:MOONSHOT_API_KEY) {
-    Write-Host "Press Y to run tokenizer. Press other key to skip."
+    Write-Host "Press Y to run tokenizer. Press other key to skip"
     if ([System.Console]::ReadKey($true).Key -eq 'Y') { $pythonArgs += "--tokenizer" }
 }
 else { Write-Host "No environment variable MOONSHOT_API_KEY found. Tokenizer skipped." -ForegroundColor Yellow }

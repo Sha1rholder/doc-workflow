@@ -4,6 +4,7 @@ import argparse
 import re
 from pathlib import Path
 import tomllib
+import shutil
 
 
 def main() -> int:
@@ -14,10 +15,20 @@ def main() -> int:
 
     with Path("settings.toml").open("rb") as f:
         settings = tomllib.load(f)
-    cleared_folder,combined_folder,combined_file_extension,tokens_csv, remove_comments, combinations, tokenizer = (
+    (
+        cleared_folder,
+        delete_cleared,
+        combined_folder,
+        combined_extension,
+        tokens_csv,
+        remove_comments,
+        combinations,
+        tokenizer,
+    ) = (
         settings["cleared_folder"],
+        settings["delete_cleared"],
         settings["combined_folder"],
-        settings["combined_file_extension"],
+        settings["combined_extension"],
         settings["tokens_csv"],
         settings["remove_comments"],
         settings["combinations"],
@@ -25,14 +36,19 @@ def main() -> int:
     )
 
     if args.init:
-        import shutil
-        shutil.rmtree(cleared_folder,ignore_errors=True)
+        shutil.rmtree(cleared_folder, ignore_errors=True)
         shutil.rmtree(combined_folder, ignore_errors=True)
         if os.path.exists(tokens_csv):
             os.remove(tokens_csv)
 
     remove_all(cleared_folder, remove_comments)
-    combine_all(combined_folder, combinations)
+    combine_all(
+        cleared_folder,
+        delete_cleared,
+        combined_folder,
+        combined_extension,
+        combinations,
+    )
 
     if args.tokenizer:
         try:
@@ -53,11 +69,10 @@ def main() -> int:
     return 0
 
 
-def is_same(file_path: Path, new_content: str) -> bool:
-    try:
-        return file_path.read_text(encoding="utf-8") == new_content
-    except FileNotFoundError:
-        return False
+def needs_update(file_path: Path, new_content: str) -> bool:
+    return not (
+        file_path.is_file() and file_path.read_text(encoding="utf-8") == new_content
+    )
 
 
 def remove_all(cleared_folder: str, remove_comments: list[str]) -> None:
@@ -65,19 +80,26 @@ def remove_all(cleared_folder: str, remove_comments: list[str]) -> None:
     output_dir.mkdir(exist_ok=True)
 
     for url in remove_comments:
-        content = Path(url).read_text(encoding="utf-8")
+        src_path = Path(url)
+        content = src_path.read_text(encoding="utf-8")
         cleared_content = re.sub(r"<!--.*?-->", "", content, flags=re.DOTALL)
-        # 把原文件的路径“模拟”一份存在cleared_folder中
+        output_path = output_dir / src_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if not is_same(output_path, cleared_content):
+        if needs_update(output_path, cleared_content):
             output_path.write_text(cleared_content, encoding="utf-8")
             print(f"Updated: {output_path}")
 
 
-def combine_all(cleared_folder:str,combined_folder: str,combined_file_extension:str, combinations: list[dict]) -> None:
+def combine_all(
+    cleared_folder: str,
+    delete_cleared: bool,
+    combined_folder: str,
+    combined_extension: str,
+    combinations: list[dict],
+) -> None:
     output_dir = Path(combined_folder)
     output_dir.mkdir(exist_ok=True)
-    derived_path = Path(combined_folder)
 
     for combo in combinations:
         base_name = combo["name"]
@@ -87,10 +109,11 @@ def combine_all(cleared_folder:str,combined_folder: str,combined_file_extension:
         parts = []
         for url in urls:
             content = Path(url).read_text(encoding="utf-8")
-            if url.startswith(combined_folder+"/"):
+            if url.startswith(combined_folder):
                 content = f'<group path="{url}">{content}</group>'
-            elif url.startswith(cleared_folder+"/"):
-                content = f'<file path="{display_path}" process="HTML comments removed"><![CDATA[{content.replace("]]>", "]]]]><![CDATA[>")}]]></file>'#display_path=原路径的cleared_folder开头删了
+            elif url.startswith(cleared_folder):
+                display_path = url[len(cleared_folder) :]
+                content = f'<file path="{display_path}" note="HTML comments were removed"><![CDATA[{content.replace("]]>", "]]]]><![CDATA[>")}]]></file>'
             else:
                 content = f'<file path="{url}"><![CDATA[{content.replace("]]>", "]]]]><![CDATA[>")}]]></file>'
             parts.append(content)
@@ -99,11 +122,14 @@ def combine_all(cleared_folder:str,combined_folder: str,combined_file_extension:
         if comment:
             final_content = f"<!--{comment}-->" + final_content
 
-        xml_path = output_dir / f"{base_name}{combined_file_extension}"
+        xml_path = output_dir / f"{base_name}{combined_extension}"
 
-        if not is_same(xml_path, final_content):
+        if needs_update(xml_path, final_content):
             xml_path.write_text(final_content, encoding="utf-8")
-            print(f"Updated: {base_name}{combined_file_extension}")
+            print(f"Updated: {base_name}{combined_extension}")
+    if delete_cleared:
+        shutil.rmtree(cleared_folder, ignore_errors=True)
+        print(f"Deleted: {cleared_folder}")
 
 
 def tokens_update(
@@ -133,7 +159,7 @@ def tokens_update(
         else:
             return 1
 
-    sorted_data = ... # 按首字母排序
+    sorted_data = dict(sorted(data.items()))
 
     with tokens_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)

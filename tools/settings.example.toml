@@ -1,29 +1,38 @@
-cleared_folder=".cleared"# This folder will be overwritten by the program. All cleared files will be stored here. Ensure that no critical files are stored here.
-combined_folder = "combined" # This folder will be overwritten by the program. All cleared files will be stored here. Ensure that no critical files are stored here.
-combined_file_extension=".xml.txt" #
-tokens_csv = "tokens.csv" # This file will be overwritten by the program. It stores the tokenizer's results and timestamp. Ensure that no critical data is stored here.
+cleared_folder = ".cleared/" # Directory for files with HTML comments removed, trailing slash required. ⚠️ This folder will be overwritten
+delete_cleared = false # Choose if to delete cleared_folder after execution, set to false to keep the cleared files
 
-remove_comments = ["example2.md", "example0/example3.md"] # Select the files from which you want to remove HTML comments.
+combined_folder = "combined/" # Directory for combined XML files, trailing slash required. ⚠️ This folder will be overwritten
+combined_extension = ".xml.txt" # File extension for combined output files
+
+tokens_csv = "tokens.csv" # Path to CSV file for token count results. ⚠️ This file will be overwritten
+
+
+remove_comments = [ "example2.md", "example0/example3.md" ] # List of files to remove HTML comments from
+
+
+# Document merge configuration
+# Multiple [[combinations]] blocks can be defined, each representing a merge task
+# Supports chaining: can use previously merged files as input for subsequent merges
+# Supports overwriting: can overwrite previously generated files with the same name
+[[combinations]]
+name = "first" # Output filename (without extension)
+comment = "Comment will be shown in the combination result." # Comments are optional
+filelist = [ "example1.md", ".cleared/example0/example3.md" ] # List of files to merge, in order
+
+[[combinations]]
+name = "second" # Can reference previous merge result
+filelist = [ # Overwrites previously generated files
+  "combined/first.xml.txt",
+  ".cleared/example2.md",
+  "example3.md"
+]
 
 [[combinations]]
 name = "first"
-comment="You can add comment here. It will be shown in the combination result."
-filelist = ["example1.md", ".cleared/example0/example3.md"]
+filelist = [ "example1.md", "example0/example3.md" ]
 
-[[combinations]]
-name="second"
-comment="'comment' is optional, while 'name' and 'filelist' are mandatory."
-filelist = ["combined/first.xml.txt", "example3.md"]
 
-[[combinations]]
-name="third"
-filelist=[]
-
-# Append more [[combinations]] as you like.
-
+# Tokenizer configuration (requires MOONSHOT_API_KEY)
 [tokenizer]
-endpoint = "https://api.moonshot.cn/v1/tokenizers/estimate-token-count" # For users outside of China: "https://api.moonshot.ai/v1/tokenizers/estimate-token-count"
-files = [
-    "combined/second.xml.txt",
-    "example2.md",
-] # Add anything you want to tokenize.
+endpoint = "https://api.moonshot.cn/v1/tokenizers/estimate-token-count" # or https://api.moonshot.ai/v1/tokenizers/estimate-token-count
+files = [ "combined/second.xml.txt", "example2.md" ] # List of files to calculate token counts for
