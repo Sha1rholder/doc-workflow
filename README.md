@@ -30,6 +30,7 @@ doc-workflow/
 └─ tools/                   # Tool directory
    ├─ run.ps1               # PowerShell startup script
    ├─ toolchain.py          # Core Python script
+   ├─ tokenizer.py          # Moonshot tokenizer
    └─ settings.example.toml # Configuration file template
 ```
 
@@ -39,7 +40,8 @@ doc-workflow/
 
 | Configuration Item | Description |
 | --- | --- |
-| derived_folder | Output folder for storing processed files |
+| cleared_folder | Output folder for storing HTML-comments-removed files |
+| combined_folder | Output folder for storing combined .xml.txt files |
 | tokens_csv | Token statistics record file |
 | remove_comments | List of files that need HTML comments removed |
 | [[combinations]] | Document merging configuration; allows defining multiple combinations and supports chained merging |

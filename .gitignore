@@ -1,7 +1,9 @@
-/derived/
+/cleared/
+/combined/
 /tokens.csv
 /settings.toml
 
 __pycache__/
 
 /todo.txt
+CLAUDE.md

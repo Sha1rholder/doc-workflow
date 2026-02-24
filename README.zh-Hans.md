@@ -28,6 +28,7 @@ doc-workflow/
 └─ tools/                   # 工具目录
    ├─ run.ps1               # PowerShell启动脚本
    ├─ toolchain.py          # 核心Python脚本
+   ├─ tokenizer.py          # Moonshot tokenizer
    └─ settings.example.toml # 配置文件模板
 ```
 
@@ -37,7 +38,9 @@ doc-workflow/
 
 | 配置项 | 说明 |
 | --- | --- |
-| derived_folder | 输出文件夹，存放处理后的文件 |
+| cleared_folder | 存放清除HTML注释后的文件目录 |
+| combined_folder | 存放结合后的XML文件目录 |
+| combined_file_extension | 输出文件的后缀名 |
 | tokens_csv | Token统计记录文件 |
 | remove_comments | 需要清除HTML注释的文件列表 |
 | [[combinations]] | 文档合并配置，可定义多个组合，支持链式合并 |

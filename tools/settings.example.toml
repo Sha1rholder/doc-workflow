@@ -1,4 +1,6 @@
-derived_folder = "derived" # This folder will be overwritten by the program. All derived files will be stored here. Ensure that no critical files are stored here.
+cleared_folder=".cleared"# This folder will be overwritten by the program. All cleared files will be stored here. Ensure that no critical files are stored here.
+combined_folder = "combined" # This folder will be overwritten by the program. All cleared files will be stored here. Ensure that no critical files are stored here.
+combined_file_extension=".xml.txt" #
 tokens_csv = "tokens.csv" # This file will be overwritten by the program. It stores the tokenizer's results and timestamp. Ensure that no critical data is stored here.
 
 remove_comments = ["example2.md", "example0/example3.md"] # Select the files from which you want to remove HTML comments.
@@ -6,12 +8,12 @@ remove_comments = ["example2.md", "example0/example3.md"] # Select the files fro
 [[combinations]]
 name = "first"
 comment="You can add comment here. It will be shown in the combination result."
-filelist = ["example1.md", "derived/example0__example3.comments_removed.md"]
+filelist = ["example1.md", ".cleared/example0/example3.md"]
 
 [[combinations]]
 name="second"
 comment="'comment' is optional, while 'name' and 'filelist' are mandatory."
-filelist = ["derived/first.xml.txt", "example3.md"]
+filelist = ["combined/first.xml.txt", "example3.md"]
 
 [[combinations]]
 name="third"
@@ -22,6 +24,6 @@ filelist=[]
 [tokenizer]
 endpoint = "https://api.moonshot.cn/v1/tokenizers/estimate-token-count" # For users outside of China: "https://api.moonshot.ai/v1/tokenizers/estimate-token-count"
 files = [
-    "derived/second.xml.txt",
+    "combined/second.xml.txt",
     "example2.md",
 ] # Add anything you want to tokenize.
