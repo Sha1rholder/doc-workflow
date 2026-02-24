@@ -61,8 +61,6 @@ if ((& $pythonexe --version 2>&1) -notmatch "3\.1[1-9]") {
 }
 
 # To do, or not to do, that is the question.
-Write-Host "Press Y to keep window open after execution. Press other key to immediately close the window once complete."
-$keepWindowOpen = [System.Console]::ReadKey($true).Key -eq 'Y'
 $pythonArgs = @($toolchainPath)
 Write-Host "Press Y to delete automatically generated folder and file. Press other key to skip"
 if ([System.Console]::ReadKey($true).Key -eq 'Y') { $pythonArgs += "--init" }
@@ -72,5 +70,5 @@ if ($env:MOONSHOT_API_KEY) {
 }
 else { Write-Host "No environment variable MOONSHOT_API_KEY found. Tokenizer skipped." -ForegroundColor Yellow }
 & $pythonexe @pythonArgs
-if ($keepWindowOpen) { Read-Host "Press Enter to exit" }
+Read-Host "Press Enter to exit"
 exit 0
