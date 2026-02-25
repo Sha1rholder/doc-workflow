@@ -10,5 +10,3 @@ __pycache__/
 /.vscode/
 /.claude/
 CLAUDE.md
-
-/tools/tests/
