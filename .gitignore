@@ -1,12 +1,7 @@
-/.cleared/
-/combined/
-/tokens.csv
-
-/.docflow.toml
-
 __pycache__/
 .rumdl_cache/
 
-/todo.txt
-/.vscode/
-/.claude/
+/.docflow.toml
+/.cleared/
+/combined/
+/tokens.csv
