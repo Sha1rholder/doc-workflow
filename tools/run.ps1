@@ -11,7 +11,7 @@ Automatically find/install Python environment (uv preferred), and interactively 
 The behavior of this script depends on its absolute path, regardless of launch location and current working directory.
 #>
 
-$settings_toml = ".\.docflow.toml"
+$settingsToml = ".\.docflow.toml"
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -43,10 +43,10 @@ $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $toolchainPath = Join-Path $PSScriptRoot "toolchain.py"
 Push-Location $projectRoot
 
-# Ensure $settings_toml exists.
-if (-not (Test-Path -Path $settings_toml -PathType Leaf)) {
-    Copy-Item -Path ".\tools\example.toml" -Destination $settings_toml -Force
-    Exit-WithPrompt "Created $settings_toml from template. Please manually configure it and run this script again."
+# Ensure $settingsToml exists.
+if (-not (Test-Path -Path $settingsToml -PathType Leaf)) {
+    Copy-Item -Path ".\tools\example.toml" -Destination $settingsToml -Force
+    Exit-WithPrompt "Created $settingsToml from template. Please manually configure it and run this script again."
 }
 
 # Find Python executable: try uv first, then python
@@ -152,7 +152,7 @@ else {
 }
 
 # Build arguments - always include --clear and --combine
-$allArgs = $pythonPrefix + @($toolchainPath, "--config", $settings_toml, "--clear", "--combine")
+$allArgs = $pythonPrefix + @($toolchainPath, "--config", $settingsToml, "--clear", "--combine")
 if ($doInit) {
     $allArgs += "--init"
 }
