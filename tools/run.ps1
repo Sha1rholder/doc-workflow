@@ -11,7 +11,7 @@ Automatically find/install Python environment (uv preferred), and interactively 
 The behavior of this script depends on its absolute path, regardless of launch location and current working directory.
 #>
 
-$settings_toml = ".\settings.toml"
+$settings_toml = ".\.docflow.toml"
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'

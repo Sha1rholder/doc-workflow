@@ -27,14 +27,14 @@
 
 1. 复制整个`tools/`文件夹到项目根目录
 2. 运行`tools/run.ps1`
-3. 编辑`settings.toml`
+3. 编辑`.docflow.toml`
 4. 再运行`tools/run.ps1`
 
 `tools/run.ps1`的效果取决于其绝对路径，和它在哪启动/当前工作目录无关
 
 如果要启用tokenizer，请创建一个环境变量`MOONSHOT_API_KEY`（用户或系统级都行），并在月之暗面官网<https://platform.moonshot.cn>（海外版官网<https://platform.moonshot.ai>）申请一个API Key并添加到`MOONSHOT_API_KEY`
 
-如果你是在<https://platform.moonshot.ai>申请的API Key，请记得修改`settings.toml`中的`[tokenizer].endpoint`
+如果你是在<https://platform.moonshot.ai>申请的API Key，请记得修改`.docflow.toml`中的`[tokenizer].endpoint`
 
 ## 工具目录
 
@@ -51,9 +51,9 @@ doc-workflow/
    └─ example.toml # 配置文件模板
 ```
 
-## settings.toml
+## .docflow.toml
 
-`settings.toml`是`toolchain.py`的配置文件，由`example.toml`复制生成，可以用记事本编缉。如果你不想用这个文件名，也可以在`run.ps1`中修改
+`.docflow.toml`是`toolchain.py`的配置文件，由`example.toml`复制生成，可以用记事本编缉。如果你不想用这个文件名，也可以在`run.ps1`中修改
 
 | 配置项 | 说明 |
 | --- | --- |

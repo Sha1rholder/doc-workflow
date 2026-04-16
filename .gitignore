@@ -2,7 +2,7 @@
 /combined/
 /tokens.csv
 
-/settings.toml
+/.docflow.toml
 
 __pycache__/
 

@@ -29,14 +29,14 @@ Detailed implementation: [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https
 
 1. Copy the entire `tools/` folder to your project root directory
 2. Run `tools/run.ps1`
-3. Edit `settings.toml`
+3. Edit `.docflow.toml`
 4. Run `tools/run.ps1` again
 
 The behavior of `tools/run.ps1` depends on its absolute path and is independent of where it's launched or the current working directory.
 
 To enable the tokenizer, please create an environment variable `MOONSHOT_API_KEY` (either user or system level works), and apply for an API Key from Moonshot's official website <https://platform.moonshot.ai> (China site <https://platform.moonshot.cn>), then add your API Key to `MOONSHOT_API_KEY`.
 
-If you applied for your API Key at <https://platform.moonshot.ai>, remember to modify `[tokenizer].endpoint` in `settings.toml`.
+If you applied for your API Key at <https://platform.moonshot.ai>, remember to modify `[tokenizer].endpoint` in `.docflow.toml`.
 
 ## Tool Directory
 
@@ -53,9 +53,9 @@ doc-workflow/
    └─ example.toml # Configuration file template
 ```
 
-## settings.toml
+## .docflow.toml
 
-`settings.toml` is the configuration file for `toolchain.py`, copied from `example.toml`, and can be edited with Notepad. If you don't want to use this filename, you can also modify it in `run.ps1`.
+`.docflow.toml` is the configuration file for `toolchain.py`, copied from `example.toml`, and can be edited with Notepad. If you don't want to use this filename, you can also modify it in `run.ps1`.
 
 | Configuration Item | Description |
 | --- | --- |

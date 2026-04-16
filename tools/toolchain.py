@@ -6,7 +6,7 @@
 # ///
 """
 Project toolchain - main entry point.
-Only this file reads settings.toml and coordinates other modules.
+Only this file reads .docflow.toml and coordinates other modules.
 """
 
 import os
