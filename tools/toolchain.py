@@ -10,15 +10,14 @@ Only this file reads .docflow.toml and coordinates other modules.
 """
 
 import os
-import tomllib
 from pathlib import Path
 from typing import Annotated
-import typer
 
-from init import init_outputs
+import tomllib
+import typer
 from clear import clear_comments
 from combine import combine_files
-
+from init import init_outputs
 
 app = typer.Typer(
     name="toolchain",
@@ -147,7 +146,7 @@ def main(
             raise typer.Exit(1)
 
         if MOONSHOT_API_KEY:
-            from tokenizer import bulk_tokenizer, write_tokens, read_existing_tokens
+            from tokenizer import bulk_tokenizer, read_existing_tokens, write_tokens
 
             print("Updating token counts...")
             existing_data = read_existing_tokens(tokens_csv)

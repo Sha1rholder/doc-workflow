@@ -13,8 +13,8 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Optional
-import typer
 
+import typer
 
 app = typer.Typer(
     name="tokenizer",
@@ -216,7 +216,7 @@ def tokenizer_add1(
             content = f.read()
 
         data = {
-            "model": "kimi-k2.5",
+            "model": "kimi-k2.6",
             "messages": [{"role": "user", "content": content}],
         }
 
